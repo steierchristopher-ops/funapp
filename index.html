@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mousewar</title>
+  <link rel="stylesheet" href="./src/styles/main.css" />
+</head>
+<body>
+  <div id="app" data-phase="start">
+
+    <!-- Viewport too small for comfortable desktop play -->
+    <section class="screen screen-tooSmall" data-screen="tooSmall" hidden>
+      <p class="tooSmall-message">
+        Mousewar needs a bit more room.<br />
+        Please widen your browser window.
+      </p>
+    </section>
+
+    <!-- Start screen -->
+    <section class="screen screen-start" data-screen="start">
+      <div class="start-content">
+        <h1 class="logo">M O U S E W A R</h1>
+        <button type="button" class="btn btn-play" id="btn-play" autofocus>PLAY</button>
+        <button type="button" class="btn btn-secondary" id="btn-open-leaderboard">TOP 10</button>
+        <ul class="rules">
+          <li>30 SECONDS</li>
+          <li>1 SECOND COMBO WINDOW</li>
+          <li>MAX COMBO x10</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Countdown overlay -->
+    <section class="screen screen-countdown" data-screen="countdown" hidden>
+      <div class="countdown-label" id="countdown-label" aria-live="assertive">3</div>
+    </section>
+
+    <!-- Gameplay screen -->
+    <section class="screen screen-play" data-screen="play" hidden>
+      <header class="hud">
+        <div class="hud-stat hud-score">
+          <span class="hud-label">SCORE</span>
+          <span class="hud-value" id="hud-score">0</span>
+        </div>
+        <div class="hud-stat hud-time">
+          <span class="hud-label">TIME</span>
+          <span class="hud-value" id="hud-time">30.00</span>
+        </div>
+        <div class="hud-stat hud-best">
+          <span class="hud-label">BEST</span>
+          <span class="hud-value" id="hud-best">0</span>
+        </div>
+      </header>
+
+      <div class="playArea" id="play-area">
+        <div class="combo-display" id="combo-display" aria-live="polite">
+          <span class="combo-multiplier" id="combo-multiplier">x1</span>
+          <span class="combo-caption">COMBO</span>
+          <div class="hits-display" id="hits-display">0 HITS</div>
+        </div>
+
+        <button type="button" class="target" id="target" aria-label="Target" hidden></button>
+
+        <div class="feedback-layer" id="feedback-layer" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- Result screen -->
+    <section class="screen screen-result" data-screen="result" hidden>
+      <div class="result-content">
+        <h2 class="result-title">RUN COMPLETE</h2>
+        <div class="result-score" id="result-score">0</div>
+        <div class="result-score-label">POINTS</div>
+
+        <div class="result-perfect" id="result-perfect" hidden>
+          <div class="perfect-title">PERFECT RUN!</div>
+          <div class="perfect-bonus">+5,000 BONUS</div>
+        </div>
+
+        <dl class="result-stats">
+          <div class="result-stat">
+            <dt>HITS</dt>
+            <dd id="result-hits">0</dd>
+          </div>
+          <div class="result-stat">
+            <dt>MAX COMBO</dt>
+            <dd id="result-maxcombo">x1</dd>
+          </div>
+          <div class="result-stat">
+            <dt>TIME</dt>
+            <dd>30.00</dd>
+          </div>
+        </dl>
+
+        <button type="button" class="btn btn-play" id="btn-play-again">PLAY AGAIN</button>
+        <button type="button" class="btn btn-secondary" id="btn-view-leaderboard">LEADERBOARD</button>
+      </div>
+    </section>
+
+    <!-- Arcade high score name entry -->
+    <section class="screen screen-nameEntry" data-screen="nameEntry" hidden>
+      <div class="nameEntry-content">
+        <h2 class="nameEntry-title">NEW HIGH SCORE!</h2>
+        <div class="nameEntry-score" id="nameEntry-score">0</div>
+        <p class="nameEntry-prompt">ENTER YOUR NAME</p>
+        <div class="nameEntry-slots" id="nameEntry-slots" role="textbox" aria-label="Enter your 3 letter name" tabindex="0">
+          <span class="nameEntry-slot" data-slot="0">_</span>
+          <span class="nameEntry-slot" data-slot="1">_</span>
+          <span class="nameEntry-slot" data-slot="2">_</span>
+        </div>
+        <button type="button" class="btn btn-play" id="btn-save-name">SAVE</button>
+      </div>
+    </section>
+
+    <!-- Leaderboard -->
+    <section class="screen screen-leaderboard" data-screen="leaderboard" hidden>
+      <div class="leaderboard-content">
+        <h2 class="leaderboard-title">MOUSEWAR // TOP 10</h2>
+        <ol class="leaderboard-list" id="leaderboard-list"></ol>
+        <button type="button" class="btn btn-play" id="btn-leaderboard-play">PLAY AGAIN</button>
+        <button type="button" class="btn btn-secondary" id="btn-leaderboard-back">BACK</button>
+      </div>
+    </section>
+
+  </div>
+
+  <script type="module" src="./src/mousewar/main.js"></script>
+</body>
+</html>

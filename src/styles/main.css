@@ -1,0 +1,640 @@
+/* Mousewar — clean esports + 80s arcade.
+   Dark background, high contrast, neon glow, no gradients-for-gradients'-sake,
+   no screenshake. Animations lean on transform/opacity for GPU-friendly motion. */
+
+:root {
+  --mw-bg: #05060a;
+  --mw-bg-raised: #0b0e16;
+  --mw-fg: #eef2ff;
+  --mw-fg-dim: #7d87a6;
+  --mw-cyan: #00f6ff;
+  --mw-magenta: #ff2bd6;
+  --mw-yellow: #ffe600;
+  --mw-red: #ff3b5c;
+  --mw-focus: #ffe600;
+
+  --mw-target-size: 64px;
+
+  --mw-font: ui-monospace, 'SFMono-Regular', 'Consolas', 'Liberation Mono', Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--mw-bg);
+  color: var(--mw-fg);
+  font-family: var(--mw-font);
+  overflow: hidden;
+}
+
+button {
+  font-family: inherit;
+}
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 480px;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.screen[hidden] {
+  display: none;
+}
+
+/* Focus visibility — keyboard users must always be able to see focus. */
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--mw-focus);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------- */
+/* Too-small viewport notice                                         */
+/* ---------------------------------------------------------------- */
+
+.screen-tooSmall {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  z-index: 50;
+  background: var(--mw-bg);
+}
+
+.tooSmall-message {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--mw-fg-dim);
+  letter-spacing: 0.05em;
+}
+
+/* ---------------------------------------------------------------- */
+/* Shared buttons                                                    */
+/* ---------------------------------------------------------------- */
+
+.btn {
+  appearance: none;
+  border: 2px solid var(--mw-cyan);
+  background: transparent;
+  color: var(--mw-cyan);
+  font-family: var(--mw-font);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  font-size: 1rem;
+  padding: 0.85em 2.2em;
+  cursor: pointer;
+  text-shadow: 0 0 8px currentColor;
+  box-shadow: 0 0 12px rgba(0, 246, 255, 0.35), inset 0 0 12px rgba(0, 246, 255, 0.08);
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.btn:hover {
+  background: rgba(0, 246, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  border-color: var(--mw-fg-dim);
+  color: var(--mw-fg-dim);
+  box-shadow: none;
+  text-shadow: none;
+  margin-top: 0.75rem;
+}
+
+.btn-secondary:hover {
+  border-color: var(--mw-fg);
+  color: var(--mw-fg);
+}
+
+/* ---------------------------------------------------------------- */
+/* Start screen                                                      */
+/* ---------------------------------------------------------------- */
+
+.screen-start {
+  align-items: center;
+  justify-content: center;
+}
+
+.start-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  text-align: center;
+}
+
+.logo {
+  margin: 0 0 1rem;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  color: var(--mw-fg);
+  text-shadow:
+    0 0 10px var(--mw-cyan),
+    0 0 28px var(--mw-magenta);
+}
+
+.rules {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: var(--mw-fg-dim);
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+}
+
+/* ---------------------------------------------------------------- */
+/* Countdown                                                         */
+/* ---------------------------------------------------------------- */
+
+.screen-countdown {
+  align-items: center;
+  justify-content: center;
+}
+
+.countdown-label {
+  font-size: clamp(6rem, 22vw, 14rem);
+  font-weight: 800;
+  color: var(--mw-yellow);
+  text-shadow:
+    0 0 20px var(--mw-yellow),
+    0 0 60px var(--mw-magenta);
+  animation: mw-countdown-pop 700ms cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+@keyframes mw-countdown-pop {
+  0% {
+    transform: scale(0.4) rotate(-4deg);
+    opacity: 0;
+  }
+  35% {
+    transform: scale(1.15) rotate(2deg);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(0.96) rotate(0deg);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* Gameplay screen                                                   */
+/* ---------------------------------------------------------------- */
+
+.screen-play {
+  flex-direction: column;
+}
+
+.hud {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--mw-bg-raised);
+}
+
+.hud-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 6rem;
+}
+
+.hud-time {
+  align-items: center;
+}
+
+.hud-best {
+  align-items: flex-end;
+}
+
+.hud-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--mw-fg-dim);
+}
+
+.hud-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-score .hud-value {
+  color: var(--mw-cyan);
+  text-shadow: 0 0 10px rgba(0, 246, 255, 0.5);
+}
+
+.hud-time .hud-value {
+  color: var(--mw-fg);
+}
+
+.hud-time.hud-time-low .hud-value {
+  color: var(--mw-red);
+  text-shadow: 0 0 10px rgba(255, 59, 92, 0.6);
+}
+
+.hud-best .hud-value {
+  color: var(--mw-fg-dim);
+}
+
+.playArea {
+  position: relative;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.combo-display {
+  position: absolute;
+  top: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.combo-multiplier {
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: var(--mw-fg-dim);
+  transition: color 150ms ease, font-size 150ms ease, text-shadow 150ms ease;
+}
+
+.combo-caption {
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: var(--mw-fg-dim);
+}
+
+.hits-display {
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--mw-fg-dim);
+}
+
+/* Combo intensity ramps: x1 nearly invisible -> x10 maximum spectacle.
+   Colors shift cool -> hot; glow and scale grow with the multiplier. */
+.combo-level-1 .combo-multiplier { color: var(--mw-fg-dim); font-size: 1.4rem; text-shadow: none; }
+.combo-level-2 .combo-multiplier { color: var(--mw-cyan); font-size: 1.55rem; text-shadow: 0 0 6px rgba(0, 246, 255, 0.5); }
+.combo-level-3 .combo-multiplier { color: var(--mw-cyan); font-size: 1.7rem; text-shadow: 0 0 10px rgba(0, 246, 255, 0.6); }
+.combo-level-4 .combo-multiplier { color: var(--mw-cyan); font-size: 1.9rem; text-shadow: 0 0 14px rgba(0, 246, 255, 0.7); }
+.combo-level-5 .combo-multiplier { color: var(--mw-magenta); font-size: 2.1rem; text-shadow: 0 0 16px rgba(255, 43, 214, 0.75); }
+.combo-level-6 .combo-multiplier { color: var(--mw-magenta); font-size: 2.3rem; text-shadow: 0 0 20px rgba(255, 43, 214, 0.8); }
+.combo-level-7 .combo-multiplier { color: var(--mw-yellow); font-size: 2.5rem; text-shadow: 0 0 22px rgba(255, 230, 0, 0.8); }
+.combo-level-8 .combo-multiplier { color: var(--mw-yellow); font-size: 2.75rem; text-shadow: 0 0 26px rgba(255, 230, 0, 0.85); }
+.combo-level-9 .combo-multiplier { color: var(--mw-yellow); font-size: 3rem; text-shadow: 0 0 30px rgba(255, 230, 0, 0.9); }
+.combo-level-10 .combo-multiplier {
+  color: #fff;
+  font-size: 3.4rem;
+  text-shadow:
+    0 0 12px var(--mw-yellow),
+    0 0 28px var(--mw-magenta),
+    0 0 46px var(--mw-cyan);
+  animation: mw-max-combo-flicker 900ms ease-in-out infinite;
+}
+
+@keyframes mw-max-combo-flicker {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(35deg); }
+}
+
+/* Pulse triggered on every multiplier increase (transient class, re-added
+   by JS via a reflow trick so it can replay on repeated increments). */
+.combo-pulse .combo-multiplier {
+  animation-name: mw-combo-pulse;
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+
+.combo-level-10.combo-pulse .combo-multiplier {
+  animation-name: mw-combo-pulse, mw-max-combo-flicker;
+  animation-duration: 320ms, 900ms;
+  animation-iteration-count: 1, infinite;
+}
+
+@keyframes mw-combo-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+/* Combo lost: quick "break" feedback on the multiplier readout itself. */
+.combo-broken .combo-multiplier {
+  animation: mw-combo-broken 380ms ease-out;
+}
+
+@keyframes mw-combo-broken {
+  0% { transform: scale(1.1); opacity: 1; }
+  40% { transform: scale(0.85) skewX(-6deg); opacity: 0.4; }
+  100% { transform: scale(1) skewX(0deg); opacity: 1; }
+}
+
+.target {
+  position: absolute;
+  width: var(--mw-target-size);
+  height: var(--mw-target-size);
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, var(--mw-cyan) 38%, #0aa6b3 100%);
+  box-shadow:
+    0 0 18px 4px rgba(0, 246, 255, 0.75),
+    0 0 40px 10px rgba(0, 246, 255, 0.35);
+  will-change: transform, opacity;
+  animation: mw-target-spawn 140ms ease-out;
+}
+
+.target:focus-visible {
+  outline: 3px solid var(--mw-yellow);
+  outline-offset: 4px;
+}
+
+@keyframes mw-target-spawn {
+  0% { transform: scale(0.3); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Floating "-100" / "MISS" feedback text, spawned + removed by JS. */
+.feedback-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.feedback-pop {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  color: var(--mw-red);
+  text-shadow: 0 0 10px rgba(255, 59, 92, 0.7);
+  animation: mw-feedback-float 650ms ease-out forwards;
+}
+
+@keyframes mw-feedback-float {
+  0% { opacity: 0; transform: translate(-50%, -50%) translateY(0); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) translateY(-28px); }
+}
+
+/* ---------------------------------------------------------------- */
+/* Result screen                                                     */
+/* ---------------------------------------------------------------- */
+
+.screen-result {
+  align-items: center;
+  justify-content: center;
+}
+
+.result-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+
+.result-title {
+  margin: 0;
+  font-size: 1.1rem;
+  letter-spacing: 0.3em;
+  color: var(--mw-fg-dim);
+}
+
+.result-score {
+  font-size: clamp(3rem, 10vw, 5rem);
+  font-weight: 800;
+  color: var(--mw-cyan);
+  text-shadow: 0 0 24px rgba(0, 246, 255, 0.6);
+}
+
+.result-score-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  color: var(--mw-fg-dim);
+  margin-bottom: 0.5rem;
+}
+
+.result-perfect {
+  margin: 0.5rem 0 1rem;
+  animation: mw-combo-pulse 500ms ease-out;
+}
+
+.perfect-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--mw-yellow);
+  text-shadow: 0 0 16px var(--mw-yellow);
+  letter-spacing: 0.1em;
+}
+
+.perfect-bonus {
+  font-size: 1rem;
+  color: var(--mw-magenta);
+  text-shadow: 0 0 12px var(--mw-magenta);
+}
+
+.result-stats {
+  display: flex;
+  gap: 2rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.result-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.result-stat dt {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--mw-fg-dim);
+}
+
+.result-stat dd {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------- */
+/* Name entry                                                        */
+/* ---------------------------------------------------------------- */
+
+.screen-nameEntry {
+  align-items: center;
+  justify-content: center;
+}
+
+.nameEntry-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.nameEntry-title {
+  margin: 0;
+  color: var(--mw-yellow);
+  text-shadow: 0 0 14px var(--mw-yellow);
+  letter-spacing: 0.15em;
+}
+
+.nameEntry-score {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--mw-cyan);
+}
+
+.nameEntry-prompt {
+  color: var(--mw-fg-dim);
+  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.nameEntry-slots {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  cursor: text;
+}
+
+.nameEntry-slot {
+  width: 2.2rem;
+  font-size: 2.2rem;
+  font-weight: 800;
+  text-align: center;
+  color: var(--mw-fg);
+  border-bottom: 3px solid var(--mw-cyan);
+}
+
+.nameEntry-slot.is-active {
+  color: var(--mw-cyan);
+  animation: mw-slot-blink 1s steps(1) infinite;
+}
+
+@keyframes mw-slot-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.25; }
+}
+
+/* ---------------------------------------------------------------- */
+/* Leaderboard                                                       */
+/* ---------------------------------------------------------------- */
+
+.screen-leaderboard {
+  align-items: center;
+  justify-content: center;
+}
+
+.leaderboard-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: min(90vw, 30rem);
+}
+
+.leaderboard-title {
+  color: var(--mw-fg-dim);
+  letter-spacing: 0.2em;
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+
+.leaderboard-list {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr auto;
+  gap: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.95rem;
+  color: var(--mw-fg-dim);
+}
+
+.leaderboard-row .rank {
+  color: var(--mw-fg-dim);
+}
+
+.leaderboard-row .name {
+  color: var(--mw-fg);
+  letter-spacing: 0.15em;
+}
+
+.leaderboard-row .score {
+  font-variant-numeric: tabular-nums;
+  color: var(--mw-fg);
+}
+
+.leaderboard-row.is-current {
+  background: rgba(0, 246, 255, 0.08);
+  border: 1px solid rgba(0, 246, 255, 0.4);
+}
+
+.leaderboard-row.is-current .name,
+.leaderboard-row.is-current .score,
+.leaderboard-row.is-current .rank {
+  color: var(--mw-cyan);
+  text-shadow: 0 0 8px rgba(0, 246, 255, 0.5);
+}
+
+.leaderboard-empty {
+  color: var(--mw-fg-dim);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  padding: 1rem 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
